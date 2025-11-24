@@ -27,19 +27,6 @@ module fec_top(
   input logic   ul_en
   );
   
-
-  // =========== Parameters ============
-
-  localparam int ENC0_DATA_WIDTH = ENC0_DATA_WIDTH;
-  localparam int ENC0_DATA_DEPTH = ENC0_DATA_DEPTH;
-  localparam int ENC1_DATA_WIDTH = ENC1_DATA_WIDTH;
-  localparam int ENC1_DATA_DEPTH = ENC1_DATA_DEPTH;
-  
-//   parameter UART_MDW    = 8;
-//   parameter UART_FAW    = 4;
-//   parameter UART_SC     = 8;
-//   parameter UART_GFLEN  = 4;
-  
   // Logic variables
   
   // APB Register Config
