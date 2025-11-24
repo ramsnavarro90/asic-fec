@@ -1,0 +1,6 @@
+{
+    "DESIGN_NAME": "fec_top",
+    "VERILOG_FILES": ["dir::defines.svh", "dir::crc.sv", "dir::deser.sv", "dir::dl_ctrl.sv", "dir::dl_fec.sv", "dir::ef_utils.v", "dir::fec.sv", "dir::fec_fsm.sv",  "dir::reg_cfg.sv",  "dir::rf_pkt.sv", "dir::training.sv", "dir::uart.sv", "dir::design.sv"],
+    "CLOCK_PERIOD": 25,
+    "CLOCK_PORT": "clk"
+}

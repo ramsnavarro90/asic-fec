@@ -1,0 +1,9 @@
+runs/
+temp/
+build/
+output/
+reports/
+*.tmp
+*.log
+*.vcd
+*.vpd
