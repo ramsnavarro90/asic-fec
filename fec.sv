@@ -54,14 +54,6 @@ module encoder # (
 endmodule
 
 
-
-typedef enum logic [1:0] {
-  IDLE,
-  GET,
-  DECODE,
-  SET
-} dec_st_t;
-
 module decoder #(
     parameter int WIDTH = 4,
     parameter int DEPTH = 4
@@ -78,7 +70,13 @@ module decoder #(
   output logic                          error_corrected
 );
 
-  
+  typedef enum logic [1:0] {
+    S_IDLE,
+    S_GET,
+    S_DECODE,
+    S_SET
+  } dec_st_t;
+
   // Iteration data
   logic [WIDTH-1:0][DEPTH-1:0]  data_in_i;
   logic [WIDTH-1:0][DEPTH-1:0]  data_corrected_i;
@@ -109,19 +107,19 @@ module decoder #(
   // Next state logic
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n)
-      dec_st <= IDLE;
+      dec_st <= S_IDLE;
    
     else begin
       case (dec_st)
-        IDLE:    dec_st <= (ready) ? GET : IDLE;
+        S_IDLE:    dec_st <= (ready) ? S_GET : S_IDLE;
         
-        GET:     dec_st <= DECODE;
+        S_GET:     dec_st <= S_DECODE;
 
-        DECODE:  dec_st <= (complete_i) ? SET : DECODE;
+        S_DECODE:  dec_st <= (complete_i) ? S_SET : S_DECODE;
         
-        SET:     dec_st <= IDLE;
+        S_SET:     dec_st <= S_IDLE;
 
-        default: dec_st <= IDLE;
+        default: dec_st <= S_IDLE;
       endcase
       
     end
@@ -146,7 +144,7 @@ module decoder #(
       case(dec_st)
         
         // Wait for decode task
-        IDLE: begin
+        S_IDLE: begin
           // Decoder outputs
           complete          <= 'b1;
           data_corrected    <= data_corrected;
@@ -161,7 +159,7 @@ module decoder #(
         end
         
         // Get data from decoder ports
-        GET: begin
+        S_GET: begin
           // Decoder outputs
           complete          <= 'b0;
           data_corrected    <= data_corrected;
@@ -176,7 +174,7 @@ module decoder #(
         end
         
         // Decoding state
-        DECODE: begin
+        S_DECODE: begin
           // Decoder outputs
           complete          <= 'b0;
           data_corrected    <= data_corrected;
@@ -191,7 +189,7 @@ module decoder #(
         end
         
         // Decode done, set data to decoder ports
-        SET: begin
+        S_SET: begin
            // Decoder outputs
             complete         <= complete_i;
           // Handle when error was able / unable to correct
