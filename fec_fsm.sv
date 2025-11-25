@@ -111,7 +111,7 @@ module fec_fsm(
   assign ready            = dl_ready;
   assign uart_rx_array_0  = uart_rx_array[0];
   
-  assign dl_ready = uart_rx_level >='d7;
+  assign dl_ready         = uart_rx_level >='d7;
     
     
       
@@ -429,10 +429,10 @@ module fec_fsm(
           dl_cmd             <= uart_rx_array_0[3:0];
           uart_rx_fifo_flush <= 'b1;
           unique case(uart_rx_array_0[3:0])
-            CMD_REG_READ:  dl_cmd_error = 1'b0;
-            CMD_REG_WRITE: dl_cmd_error = 1'b0;
-            CMD_FEC_TX:    dl_cmd_error = 1'b0;
-            default:       dl_cmd_error = 1'b1;
+            CMD_REG_READ:  dl_cmd_error <= 1'b0;
+            CMD_REG_WRITE: dl_cmd_error <= 1'b0;
+            CMD_FEC_TX:    dl_cmd_error <= 1'b0;
+            default:       dl_cmd_error <= 1'b1;
           endcase
         end
         
