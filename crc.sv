@@ -14,7 +14,11 @@ module crc_generator_seq #(
     output logic done
 );
 
-    typedef enum logic [1:0] {IDLE, RUN, FINISH} state_t;
+    typedef enum logic [1:0] {
+      S_IDLE,
+      S_RUN,
+      S_FINISH
+    } state_t;
     state_t state, next_state;
 
     logic [DATA_WIDTH-1:0] shift_reg;
@@ -24,7 +28,7 @@ module crc_generator_seq #(
 
     always_ff @(posedge clk or negedge rst_n) begin
       if (!rst_n)
-            state <= IDLE;
+            state <= S_IDLE;
         else
             state <= next_state;
     end
@@ -32,51 +36,51 @@ module crc_generator_seq #(
     always_comb begin
         next_state = state;
         case (state)
-            IDLE:    if (start) next_state = RUN;
-            RUN:     if (bit_counter == 0) next_state = FINISH;
-            FINISH:  next_state = IDLE;
-            default: next_state = IDLE;
+            S_IDLE:    if (start) next_state = S_RUN;
+            S_RUN:     if (bit_counter == 0) next_state = S_FINISH;
+            S_FINISH:  next_state = S_IDLE;
+            default:   next_state = S_IDLE;
         endcase
     end
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             crc <= SEED;
-            shift_reg <= '0;
-            bit_counter <= 0;
-            done <= 0;
-            crc_out <= '0;
-            feedback <='0;
+            shift_reg   <=  'b0;
+            bit_counter <=  'b0;
+            done        <= 1'b0;
+            crc_out     <=  'b0;
+            feedback    <= 1'b0;
         end else begin
             case (state)
-                IDLE: begin
+                S_IDLE: begin
                     if (start) begin
-                      $display("[%0t][DE-CRC-Gen] Data-in: 0x%0h ", $time, data_in);
-                        crc <= SEED;
-                        shift_reg <= data_in;
+                        $display("[%0t][DE-CRC-Gen] Data-in: 0x%0h ", $time, data_in);
+                        crc         <= SEED;
+                        shift_reg   <= data_in;
                         bit_counter <= DATA_WIDTH;
-                        done <= 0;
+                        done        <= 1'b0;
                     end
                 end
 
-                RUN: begin
+                S_RUN: begin
                   
                     for (int i = 0; i < XOR_OPS_PER_CYCLE; i++) begin
-                        if (bit_counter > 0) begin
-                            feedback = shift_reg[DATA_WIDTH-1] ^ crc[CRC_WIDTH-1];
-                            crc = crc << 1;
+                        if (bit_counter != 'b0) begin
+                            feedback <= shift_reg[DATA_WIDTH-1] ^ crc[CRC_WIDTH-1];
+                            crc <= crc << 1;
                             if (feedback)
-                                crc = crc ^ POLY[CRC_WIDTH-1:0];
-                            shift_reg = shift_reg << 1;
-                            bit_counter--;
+                                crc <= crc ^ POLY[CRC_WIDTH-1:0];
+                            shift_reg <= shift_reg << 1;
+                            bit_counter <= bit_counter - 1'b1;
                         end
                     end
                 end
 
-                FINISH: begin
+                S_FINISH: begin
                   $display("[%0t][DE-CRC-Gen] CRC-out: 0x%0h ", $time, crc);
                    crc_out <= crc;
-                   done <= 1;
+                   done    <= 1'b1;
                 end
             endcase
         end
@@ -100,7 +104,11 @@ module crc_verify_seq #(
     output logic done
 );
 
-    typedef enum logic [1:0] {IDLE, RUN, FINISH} state_t;
+    typedef enum logic [1:0] {
+      S_IDLE,
+      S_RUN,
+      S_FINISH
+    } state_t;
     state_t state, next_state;
 
     logic [DATA_WIDTH+CRC_WIDTH-1:0] shift_reg;
@@ -110,7 +118,7 @@ module crc_verify_seq #(
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n)
-            state <= IDLE;
+            state <= S_IDLE;
         else
             state <= next_state;
     end
@@ -118,48 +126,48 @@ module crc_verify_seq #(
     always_comb begin
         next_state = state;
         case (state)
-            IDLE:   if (start) next_state = RUN;
-            RUN:    if (bit_counter == 0) next_state = FINISH;
-            FINISH: next_state = IDLE;
+            S_IDLE:   if (start) next_state = S_RUN;
+            S_RUN:    if (bit_counter == 0) next_state = S_FINISH;
+            S_FINISH: next_state = S_IDLE;
         endcase
     end
 
   always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            crc <= '0;
-            shift_reg <= '0;
-            bit_counter <= 0;
-            crc_valid <= 0;
-            done <= 0;
-            feedback <=0;
+            crc         <=  'b0;
+            shift_reg   <=  'b0;
+            bit_counter <=  'b0;
+            crc_valid   <= 1'b0;
+            done        <= 1'b0;
+            feedback    <= 1'b0;
         end else begin
             case (state)
-                IDLE: begin
+                S_IDLE: begin
                     if (start) begin
-                        shift_reg <= data_crc_in;
-                        crc <= '0;
+                        shift_reg   <= data_crc_in;
+                        crc         <= 'b0;
                         bit_counter <= (DATA_WIDTH+CRC_WIDTH);
-                        crc_valid <= 0;
-                        done <= 0;
+                        crc_valid   <= 1'b0;
+                        done        <= 1'b0;
                     end
                 end
 
-                RUN: begin
+                S_RUN: begin
                     for (int i = 0; i < XOR_OPS_PER_CYCLE; i++) begin
-                        if (bit_counter > 0) begin
-                            feedback = shift_reg[DATA_WIDTH+CRC_WIDTH-1] ^ crc[CRC_WIDTH-1];
-                            crc = crc << 1;
+                        if (bit_counter != 'b0) begin
+                            feedback <= shift_reg[DATA_WIDTH+CRC_WIDTH-1] ^ crc[CRC_WIDTH-1];
+                            crc <= crc << 1;
                             if (feedback)
-                                crc = crc ^ POLY[CRC_WIDTH-1:0];
-                            shift_reg = shift_reg << 1;
-                            bit_counter--;
+                                crc <= crc ^ POLY[CRC_WIDTH-1:0];
+                            shift_reg   <= shift_reg << 1;
+                            bit_counter <= bit_counter - 1'b1;
                         end
                     end
                 end
 
-                FINISH: begin
-                    crc_valid <= (crc == 0);
-                    done <= 1;
+                S_FINISH: begin
+                    crc_valid <= (crc == 'b0);
+                    done      <= 'b1;
                 end
             endcase
         end
