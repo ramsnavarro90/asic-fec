@@ -324,8 +324,7 @@ module fec_top(
   ) dl_ctrl_u (
     .clk                  (clk),
     .rst_n                (rst_n),
-  //.data_in              (uart_rx_array_reg[0:2**UART_FAW-2]),
-    .data_in              (uart_rx_array_r[0:2**UART_FAW-2]), // Warning-[IRRIPS] Incorrect range in part select. try with [2**FAW-1:0],
+    .data_in              (uart_rx_array_r[2**UART_FAW-2:0]),
     .msg_tag              (dl_fec_msg_tag),
     .msg_len              (dl_msg_len),
     .enc_used             (dl_ctrl_enc_used[0]),
